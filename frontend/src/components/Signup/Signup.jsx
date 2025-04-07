@@ -1,14 +1,15 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, replace, useLocation, useNavigate } from "react-router-dom";
 import Login from "../Login/Login";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const Signup = () => {
   const navigate = useNavigate();
 
-  const handleNavigaton = () => {
-    navigate("/");
-  };
+  const location = useLocation();
+  const from = location.state?.form?.pathname || "/"
 
   const {
     register,
@@ -16,7 +17,26 @@ const Signup = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data) => {
+    const userInfo = {
+      emailId : data.emailId,
+      fullName : data.fullName,
+      password : data.password
+    }
+
+    await axios.post("http://localhost:3000/v1/api/user/signup", userInfo)
+      .then((res) => {
+        // console.log(res.data.user);
+        if(res.data){
+          toast.success("User signup successfully");
+          navigate(from, {replace : true});
+        }
+        localStorage.setItem("Users", JSON.stringify(res.data.user))
+      })
+      .catch(err => {
+        toast.error(err.response.data.message);        
+      })
+  }
 
   return (
     <>
@@ -41,10 +61,10 @@ const Signup = () => {
                   type="text"
                   placeholder="Enter your full name"
                   className="bg-transparent w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("name", { required: true })}
+                  {...register("fullName", { required: true })}
                 />
                 <br />
-                {errors.name && (
+                {errors.fullName && (
                 <span className="text-sm text-red-500">
                   This field is required
                 </span>
@@ -58,10 +78,10 @@ const Signup = () => {
                   type="email"
                   placeholder="Enter your email"
                   className="bg-transparent w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("email", { required: true })}
+                  {...register("emailId", { required: true })}
                 />
                 <br />
-                {errors.email && (
+                {errors.emailId && (
                 <span className="text-sm text-red-500">
                   This field is required
                 </span>

@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import axios from "axios"
+import toast from "react-hot-toast";
 
 function Login() {
   const {
@@ -9,7 +11,34 @@ function Login() {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = data => console.log(data)
+  const onSubmit = async (data) => {
+    const userInfo = {
+      emailId : data.emailId,      
+      password : data.password
+    }
+
+    await axios.post("http://localhost:3000/v1/api/user/login", userInfo)
+      .then((res) => {
+        // console.log(res.data.user);
+        
+
+        if(res.data){
+          toast.success("User Login Successfully!");
+          document.getElementById("my_modal_3").close()
+          setTimeout(() => {
+            window.location.reload();
+            localStorage.setItem("Users", JSON.stringify(res.data.user))
+          }, 1000)
+          
+          
+        }
+        
+      })
+      .catch(err => {
+        toast.error(err.response.data.message);  
+        setTimeout(() => {}, 2000)      
+      })
+  }
 
   return (
     <div className="">
@@ -34,10 +63,10 @@ function Login() {
                 type="email"
                 placeholder="Enter your email"
                 className="w-80 px-3 py-1 border rounded-md outline-none bg-transparent"
-                {...register("email", { required: true })}
+                {...register("emailId", { required: true })}
               />
               <br />
-              {errors.email && (
+              {errors.emailId && (
                 <span className="text-sm text-red-500">
                   This field is required
                 </span>
